@@ -10,3 +10,7 @@ libraryDependencies ++= Seq(
   cache,
   ws
 )
+
+// Only show failing specs
+testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "-xonly")
+
