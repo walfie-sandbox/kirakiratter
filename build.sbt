@@ -15,6 +15,10 @@ libraryDependencies ++= Seq(
 // Only show failing specs
 testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "-xonly")
 
-// Load alternate application conf file in tests
-javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+javaOptions in Test ++= Seq(
+  // Load alternate application conf file in tests
+  "-Dconfig.file=conf/application.test.conf",
+  // Disable StatusLogger message
+  "-Dorg.apache.logging.log4j.simplelog.StatusLogger.level=OFF"
+)
 
