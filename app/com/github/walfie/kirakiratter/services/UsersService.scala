@@ -1,17 +1,20 @@
 package com.github.walfie.kirakiratter.services
 
+import org.joda.time.DateTime
 import play.api.libs.iteratee.Enumerator
-import scala.concurrent.{ExecutionContext, Future}
 import reactivemongo.api.Cursor
-import reactivemongo.bson.{BSON, BSONDocument}
 import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.{BSON, BSONDateTime, BSONDocument}
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.github.walfie.kirakiratter.models.User
 import com.github.walfie.kirakiratter.util.MongoHelpers.SaveFailedException
 
 trait UsersService {
   def save(users: Iterable[User]): Future[List[User]]
-  def find(ids: Iterable[String]): Future[List[User]]
+  def find(
+      ids: Iterable[String],
+      minUpdatedAt: DateTime = new DateTime(0)): Future[List[User]]
 }
 
 trait UsersServiceComponent {
@@ -29,8 +32,14 @@ class MongoUsersService(collection: BSONCollection)(implicit ec: ExecutionContex
     Future.sequence(savedUsers)
   }
 
-  def find(ids: Iterable[String]): Future[List[User]] = {
-    val query = BSONDocument("_id" -> BSONDocument("$in" -> ids))
+  def find(
+      ids: Iterable[String],
+      minUpdatedAt: DateTime = new DateTime(0)): Future[List[User]] = {
+    val query = BSONDocument(
+      "_id" -> BSONDocument("$in" -> ids),
+      "updatedAt" -> BSONDocument(
+        "$gte" -> BSONDateTime(minUpdatedAt.getMillis)))
+
     val cursor: Cursor[User] = collection.find(query).cursor[User]
     cursor.collect[List]()
   }
