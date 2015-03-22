@@ -1,5 +1,6 @@
 package com.github.walfie.kirakiratter.models
 
+import org.joda.time.DateTime
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.specs2.specification._
@@ -12,13 +13,15 @@ class UserSpec extends Specification {
         id = "123",
         name = "example",
         iconUrl = "http://example.com/image.png",
-        interactions = List.empty)
+        interactions = List.empty,
+        updatedAt = new DateTime(123))
 
       val expected: JsValue = Json.obj(
         "id" -> "123",
         "name" -> "example",
         "iconUrl" -> "http://example.com/image.png",
-        "interactions" -> JsArray())
+        "interactions" -> JsArray(),
+        "updatedAt" -> 123)
 
       Json.toJson(user) must_== expected
     }
