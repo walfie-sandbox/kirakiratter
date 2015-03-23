@@ -8,8 +8,8 @@ scalaVersion := "2.11.4"
 
 libraryDependencies ++= Seq(
   cache,
-  ws,
-  "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23"
+  "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23",
+  "org.twitter4j" % "twitter4j-core" % "4.0.2"
 )
 
 // Only show failing specs
