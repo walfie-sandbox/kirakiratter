@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 import com.github.walfie.kirakiratter.models.{Interaction, User}
 
 trait TwitterService {
-  def getInteractions(userId: Long, nTweets: Int): List[Interaction]
+  def getInteractions(userId: Long, nTweets: Int = 200): List[Interaction]
   def getFollowerIds(userId: Long): List[Long]
   def getFollowingIds(userId: Long): List[Long]
   def getUsers(userIds: Iterable[Long]): List[User]
@@ -49,12 +49,13 @@ class TwitterServiceImpl(val twitter: Twitter) extends TwitterService {
     (getFollowerIds(userId) ++ getFollowingIds(userId)).distinct.toList
   }
 
+  // TODO: Get in batches of 100
   def getUsers(userIds: Iterable[Long]): List[User] = {
     var tUsers: List[twitter4j.User] = twitter.lookupUsers(userIds.toArray).asScala.toList
     tUsers.map { (tUser: twitter4j.User) =>
       User(
         id = tUser.getId.toString,
-        name = tUser.getName,
+        name = tUser.getScreenName,
         iconUrl = tUser.getMiniProfileImageURL,
         updatedAt = DateTime.now
       )

@@ -1,6 +1,6 @@
 package com.github.walfie.kirakiratter.services
 
-import org.joda.time.DateTime
+import org.joda.time.{Duration, DateTime}
 import play.api.libs.iteratee.Enumerator
 import reactivemongo.api.Cursor
 import reactivemongo.api.collections.default.BSONCollection
@@ -21,7 +21,9 @@ trait UsersServiceComponent {
   def usersService: UsersService
 }
 
-class MongoUsersService(collection: BSONCollection)(implicit ec: ExecutionContext) extends UsersService {
+class MongoUsersService(
+    collection: BSONCollection,
+    ttl: Duration = Duration.standardDays(1))(implicit ec: ExecutionContext) extends UsersService {
   def save(users: Iterable[User]): Future[List[User]] = {
     val savedUsers: List[Future[User]] = users.toList.map { user =>
       collection.save(user).map { status =>
@@ -34,7 +36,7 @@ class MongoUsersService(collection: BSONCollection)(implicit ec: ExecutionContex
 
   def find(
       ids: Iterable[String],
-      minUpdatedAt: DateTime = new DateTime(0)): Future[List[User]] = {
+      minUpdatedAt: DateTime = DateTime.now.minus(ttl)): Future[List[User]] = {
     val query = BSONDocument(
       "_id" -> BSONDocument("$in" -> ids),
       "updatedAt" -> BSONDocument(

@@ -131,7 +131,7 @@ trait TwitterServiceSpecHelpers extends Mockito {
   def fakeTwitterUser(user: User): twitter4j.User = {
     val tUser: twitter4j.User = mock[twitter4j.User]
     tUser.getId returns user.id.toLong
-    tUser.getName returns user.name
+    tUser.getScreenName returns user.name
     tUser.getMiniProfileImageURL returns user.iconUrl
     tUser
   }

@@ -16,4 +16,5 @@ dist
 
 *.swp
 *.swo
+application.local.conf
 

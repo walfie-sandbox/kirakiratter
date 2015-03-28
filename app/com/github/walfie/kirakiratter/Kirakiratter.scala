@@ -1,6 +1,9 @@
 package com.github.walfie.kirakiratter
 
+import java.util.concurrent.TimeUnit
+
 import com.typesafe.config.{Config, ConfigFactory}
+import org.joda.time.Duration
 import play.api.GlobalSettings
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import reactivemongo.api.DB
@@ -34,8 +37,11 @@ object Kirakiratter extends GlobalSettings {
 
   lazy val twitterService: TwitterServiceImpl = new TwitterServiceImpl(twitter)
   lazy val usersService: MongoUsersService = {
+    val usersTTL: Duration = Duration.millis(
+      config.getDuration("application.userTTL", TimeUnit.MILLISECONDS))
+
     val usersCollection: BSONCollection = db("users")
-    new MongoUsersService(usersCollection)
+    new MongoUsersService(usersCollection, usersTTL)
   }
 }
 
