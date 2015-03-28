@@ -1,6 +1,6 @@
 package com.github.walfie.kirakiratter.models
 
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.DateTime
 import org.specs2.mutable._
 import org.specs2.runner._
 import org.specs2.specification._
@@ -14,6 +14,7 @@ class UserSpec extends Specification {
       name = "example",
       iconUrl = "http://example.com/image.png",
       interactions = List.empty,
+      follows = None,
       updatedAt = new DateTime(31415926))
 
     "be JSON serializable" in {

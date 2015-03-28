@@ -9,6 +9,7 @@ case class User (
     name: String = "",
     iconUrl: String = "",
     interactions: List[Interaction] = List.empty,
+    follows: Option[FollowInfo] = None,
     updatedAt: DateTime = new DateTime(0))
 
 object User {
@@ -20,6 +21,7 @@ object User {
       name = doc.getAs[String]("name").get,
       iconUrl = doc.getAs[String]("iconUrl").get,
       interactions = doc.getAs[List[Interaction]]("interactions").get,
+      follows = doc.getAs[FollowInfo]("follows"),
       updatedAt = new DateTime(doc.getAs[BSONDateTime]("updatedAt").get.value))
   }
 
@@ -29,6 +31,7 @@ object User {
       "name" -> user.name,
       "iconUrl" -> user.iconUrl,
       "interactions" -> user.interactions,
+      "follows" -> user.follows,
       "updatedAt" -> BSONDateTime(user.updatedAt.getMillis))
   }
 }
