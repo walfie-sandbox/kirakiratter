@@ -32,11 +32,20 @@ class TwitterServiceImpl(val twitter: Twitter) extends TwitterService {
     }.toList
   }
 
-  def getRelatedIds(userId: Long): List[Long] = {
+  // TODO: Use cursor for >2k followers
+  def getFollowerIds(userId: Long): List[Long] = {
     val followerIds: Array[Long] = twitter.getFollowersIDs(userId, -1).getIDs
-    val followingIds: Array[Long] = twitter.getFriendsIDs(userId, -1).getIDs
+    followerIds.toList
+  }
 
-    (followerIds ++ followingIds).distinct.toList
+  // TODO: Use cursor for >2k followings
+  def getFollowingIds(userId: Long): List[Long] = {
+    val followingIds: Array[Long] = twitter.getFriendsIDs(userId, -1).getIDs
+    followingIds.toList
+  }
+
+  def getRelatedIds(userId: Long): List[Long] = {
+    (getFollowerIds(userId) ++ getFollowingIds(userId)).distinct.toList
   }
 
   def getUsers(userIds: Iterable[Long]): List[User] = {
