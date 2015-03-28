@@ -1,2 +1,3 @@
 GET  /                 com.github.walfie.kirakiratter.controllers.Application.index
+GET  /user/:id         com.github.walfie.kirakiratter.controllers.Application.user(id: Long)
 GET  /assets/*file     controllers.Assets.at(path="/public", file)

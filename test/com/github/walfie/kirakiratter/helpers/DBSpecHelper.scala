@@ -1,7 +1,7 @@
 package com.github.walfie.kirakiratter.helpers
 
 import com.typesafe.config.{Config, ConfigFactory}
-import reactivemongo.api.{MongoDriver, DB}
+import reactivemongo.api.DB
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import com.github.walfie.kirakiratter.util.MongoHelpers

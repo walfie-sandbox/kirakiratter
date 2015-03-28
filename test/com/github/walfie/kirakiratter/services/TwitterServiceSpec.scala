@@ -36,6 +36,28 @@ class TwitterServiceSpec extends Specification
       }
     }
 
+    "getFollowingIds" should {
+      "return a list of following IDs" in {
+        val twitter: Twitter = mock[Twitter]
+
+        twitter.getFriendsIDs(any[Long], any[Int]) returns toTwitterIds(0 to 10)
+
+        val twitterService = new TwitterServiceImpl(twitter)
+        twitterService.getFollowingIds(123).sorted must_== ((0 to 10).toList)
+      }
+    }
+
+    "getFollowerIds" should {
+      "return a list of follower IDs" in {
+        val twitter: Twitter = mock[Twitter]
+
+        twitter.getFollowersIDs(any[Long], any[Int]) returns toTwitterIds(0 to 10)
+
+        val twitterService = new TwitterServiceImpl(twitter)
+        twitterService.getFollowerIds(123).sorted must_== ((0 to 10).toList)
+      }
+    }
+
     "getRelatedIds" should {
       "return a list of following/follower IDs" in {
         val twitter: Twitter = mock[Twitter]

@@ -8,7 +8,8 @@ import com.github.walfie.kirakiratter.models.{Interaction, User}
 
 trait TwitterService {
   def getInteractions(userId: Long, nTweets: Int): List[Interaction]
-  def getRelatedIds(userId: Long): List[Long] // Followings and followers
+  def getFollowerIds(userId: Long): List[Long]
+  def getFollowingIds(userId: Long): List[Long]
   def getUsers(userIds: Iterable[Long]): List[User]
 }
 
