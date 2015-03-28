@@ -10,31 +10,18 @@ import play.api.test._
 import scala.collection.JavaConverters._
 import twitter4j.{Paging, ResponseList, Status, Twitter, UserMentionEntity}
 
-class TwitterServiceSpec extends Specification with Mockito {
+class TwitterServiceSpec extends Specification
+    with Mockito with TwitterServiceSpecHelpers {
   "TwitterServiceImpl" >> {
     "getInteractions" should {
-      // Creating mocks for twitter4j is heck
-      def fakeStatus(toUserIds: List[Long]): Status = {
-        val mentions: Array[UserMentionEntity] = toUserIds.map { id =>
-          val mention: UserMentionEntity = mock[UserMentionEntity]
-          mention.getId returns id
-          mention
-        }.toArray
-
-        val status: Status = mock[Status]
-        status.getUserMentionEntities returns mentions
-      }
-
       "return the correct Interactions" in {
         val twitter: Twitter = mock[Twitter]
-        val statuses: java.util.List[Status] = List(
+        val statuses: ResponseList[Status] = fakeResponseList[Status](
           fakeStatus(List(1)),
           fakeStatus(List(1,2)),
           fakeStatus(List(1,2,3)),
           fakeStatus(List(1,2,3,4)),
-          fakeStatus(List(1,2,3,4,5))).asJava
-        val responses: ResponseList[Status] = mock[ResponseList[Status]]
-        responses.iterator returns statuses.iterator
+          fakeStatus(List(1,2,3,4,5)))
 
         val expected: Set[Interaction] = Set(
           Interaction("1", 5),
@@ -43,7 +30,7 @@ class TwitterServiceSpec extends Specification with Mockito {
           Interaction("4", 2),
           Interaction("5", 1))
 
-        twitter.getUserTimeline(any[Long], any[Paging]) returns responses
+        twitter.getUserTimeline(any[Long], any[Paging]) returns statuses
         val twitterService = new TwitterServiceImpl(twitter)
         twitterService.getInteractions(1, 2).toSet must_== expected
       }
@@ -52,44 +39,79 @@ class TwitterServiceSpec extends Specification with Mockito {
     "getRelatedIds" should {
       "return a list of following/follower IDs" in {
         val twitter: Twitter = mock[Twitter]
-        def toIds(xs: List[Int]): twitter4j.IDs = {
-          val ids: twitter4j.IDs = mock[twitter4j.IDs]
-          ids.getIDs() returns xs.map(_.toLong).toArray
-          ids
-        }
-        twitter.getFollowersIDs(any[Long], any[Int]) returns toIds((1 to 10).toList)
-        twitter.getFriendsIDs(any[Long], any[Int]) returns toIds((5 to 15).toList)
+
+        twitter.getFollowersIDs(any[Long], any[Int]) returns toTwitterIds(1 to 10)
+        twitter.getFriendsIDs(any[Long], any[Int]) returns toTwitterIds(5 to 15)
 
         val twitterService = new TwitterServiceImpl(twitter)
         twitterService.getRelatedIds(123).sorted must_== ((1 to 15).toList)
       }
     }
 
-    "getUser" should {
-      "return the correct User" in {
-        val user: User = User(
+    "getUsers" should {
+      "return the correct Users" in {
+        val user1: User = User(
           id = "123",
           name = "Hello",
-          iconUrl = "http://example.com/image.png")
+          iconUrl = "http://example.com/image1.png")
+        val user2: User = User(
+          id = "456",
+          name = "World",
+          iconUrl = "http://example.com/image2.png")
 
-        val tUser: twitter4j.User = mock[twitter4j.User]
-        tUser.getName returns user.name
-        tUser.getMiniProfileImageURL returns user.iconUrl
+        val tUsers: ResponseList[twitter4j.User] = fakeResponseList[twitter4j.User](
+          fakeTwitterUser(user1),
+          fakeTwitterUser(user2))
 
         val twitter: Twitter = mock[Twitter]
-        twitter.showUser(any[Long]) returns tUser
+        twitter.lookupUsers(any[Array[Long]]) returns tUsers
 
         val twitterService = new TwitterServiceImpl(twitter)
-        val receivedUser = twitterService.getUser(123)
+        val receivedUsers: List[User] = twitterService.getUsers(List(123, 456))
+
+        // Check that updatedAt date is recent
+        receivedUsers must contain { (user: User) =>
+          (DateTime.now.getMillis - user.updatedAt.getMillis).toInt must be_<(5000)
+        }.forall
 
         // Can't test for case class equality since updatedAt is dynamic
-        receivedUser.id must_== user.id
-        receivedUser.name must_== user.name
-        receivedUser.iconUrl must_== user.iconUrl
-        receivedUser.interactions must haveSize(0)
-        (DateTime.now.getMillis - receivedUser.updatedAt.getMillis).toInt must be_<(5000)
+        receivedUsers.map(_.copy(updatedAt = new DateTime(0))) must_==
+          List(user1, user2)
       }
     }
+  }
+}
+
+trait TwitterServiceSpecHelpers extends Mockito {
+  def fakeStatus(toUserIds: List[Long]): Status = {
+    val mentions: Array[UserMentionEntity] = toUserIds.map { id =>
+      val mention: UserMentionEntity = mock[UserMentionEntity]
+      mention.getId returns id
+      mention
+    }.toArray
+
+    val status: Status = mock[Status]
+    status.getUserMentionEntities returns mentions
+  }
+
+  def fakeResponseList[T](elements: T*): ResponseList[T] = {
+    val rl: ResponseList[T] = mock[ResponseList[T]]
+    rl.iterator returns elements.iterator.asJava
+    rl
+  }
+
+  def toTwitterIds(ids: Iterable[Int]): twitter4j.IDs = {
+    val tIds: twitter4j.IDs = mock[twitter4j.IDs]
+    tIds.getIDs() returns ids.map(_.toLong).toArray
+    tIds
+  }
+
+  def fakeTwitterUser(user: User): twitter4j.User = {
+    val tUser: twitter4j.User = mock[twitter4j.User]
+    tUser.getId returns user.id.toLong
+    tUser.getName returns user.name
+    tUser.getMiniProfileImageURL returns user.iconUrl
+    tUser
   }
 }
 

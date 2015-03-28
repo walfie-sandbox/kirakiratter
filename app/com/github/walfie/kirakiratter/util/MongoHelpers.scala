@@ -1,7 +1,5 @@
 package com.github.walfie.kirakiratter.util
 
-import java.text.ParseException
-
 import reactivemongo.api.MongoConnection.ParsedURI
 import reactivemongo.api.{MongoDriver, DB, MongoConnection}
 import scala.concurrent.ExecutionContext

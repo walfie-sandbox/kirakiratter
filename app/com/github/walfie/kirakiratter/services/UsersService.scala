@@ -23,7 +23,7 @@ trait UsersServiceComponent {
 
 class MongoUsersService(collection: BSONCollection)(implicit ec: ExecutionContext) extends UsersService {
   def save(users: Iterable[User]): Future[List[User]] = {
-    val savedUsers: List[Future[User]] = users.toList.map{ user =>
+    val savedUsers: List[Future[User]] = users.toList.map { user =>
       collection.save(user).map { status =>
         if (status.ok) user
         else throw new SaveFailedException(s"Failed to save $user")

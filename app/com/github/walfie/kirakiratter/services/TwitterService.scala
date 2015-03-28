@@ -9,7 +9,7 @@ import com.github.walfie.kirakiratter.models.{Interaction, User}
 trait TwitterService {
   def getInteractions(userId: Long, nTweets: Int): List[Interaction]
   def getRelatedIds(userId: Long): List[Long] // Followings and followers
-  def getUser(userId: Long): User // With empty interactions list
+  def getUsers(userIds: Iterable[Long]): List[User]
 }
 
 trait TwitterServiceComponent {
@@ -39,14 +39,16 @@ class TwitterServiceImpl(val twitter: Twitter) extends TwitterService {
     (followerIds ++ followingIds).distinct.toList
   }
 
-  def getUser(userId: Long): User = {
-    var tUser: twitter4j.User = twitter.showUser(userId)
-    User(
-      id = userId.toString, // is it worth checking if the IDs aren't the same?
-      name = tUser.getName,
-      iconUrl = tUser.getMiniProfileImageURL,
-      updatedAt = DateTime.now
-    )
+  def getUsers(userIds: Iterable[Long]): List[User] = {
+    var tUsers: List[twitter4j.User] = twitter.lookupUsers(userIds.toArray).asScala.toList
+    tUsers.map { (tUser: twitter4j.User) =>
+      User(
+        id = tUser.getId.toString,
+        name = tUser.getName,
+        iconUrl = tUser.getMiniProfileImageURL,
+        updatedAt = DateTime.now
+      )
+    }
   }
 
   // TODO: rate limiting checks
